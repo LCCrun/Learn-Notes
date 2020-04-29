@@ -13,6 +13,8 @@
 > * [volatile关键字](#volatile关键字)
 > * [explicit关键字](#explicit关键字)
 
+> * [智能指针](#智能指针)
+
 # 面向对象
 > * [拷贝构造函数与深浅拷贝](#拷贝构造函数与深浅拷贝)
 > * [this指针](#this指针)
@@ -142,6 +144,95 @@ void test05(){
 > * 相当于把内联函数里面的内容写在调用内联函数处,不用执行进入函数的步骤，直接执行函数体；  
 > * 相当于宏，却比宏多了类型检查，真正具有函数特性；  
 > * 在类声明中定义的函数，除了虚函数的其他函数都会自动隐式地当成内联函数，内联函数对于编译器而言只是一个建议，编译器不一定会接受这种建议，即使没有声明内联函数，编译器可能也会内联一些小的简单的函数。  
+
+
+
+## [智能指针](https://www.cnblogs.com/TianFang/archive/2008/09/20/1294590.html)
+智能指针有shared_ptr,weak_ptr,unique_ptr，[参考](https://www.cnblogs.com/wxquare/p/4759020.html)，使用普通指针，容易造成堆内存泄露（忘记释放），二次释放，程序发生异常时内存泄露等问题等，使用智能指针能更好的管理堆内存。
+
+* **shared_ptr核心要理解引用计数，什么时候销毁底层指针，还有赋值，拷贝构造时候的引用计数的变化，析构的时候要判断底层指针的引用计数为0了才能真正释放底层指针的内存**
+   * 不能将指针直接赋值给一个智能指针，一个是类，一个是指针。例如`std::shared_ptr<int> p4 = new int(1);`
+   * 可以`std::shared_ptr<int>p4(new int(1));`
+   * 拷贝使得对象的引用计数增加1，赋值使得原对象引用计数减1，当计数为0时，自动释放内存。后来指向的对象引用计数加1，指向后来的对象
+   * 赋值操作符减少左操作数所指对象的引用计数（如果引用计数为减至0，则删除对象），并增加右操作数所指对象的引用计数
+   
+* **shared_ptr创建后是栈上的对象，当出作用域后，每个对象会自动调用析构函数，如上所述，new int(1)会生成一个指针，此时将其传参数给shared_ptr,由shared_ptr对其进行管理，shared_ptr虽然是对象，但其有指针的特性，通过重载运算符*和->实现指针的特性来访问被管理的指针。**
+
+* shared_ptr是可以共享所有权的智能指针
+    * shared_ptr的管理机制其实并不复杂，就是对所管理的对象（这里的对象本质是被管理的指针new int(1)，并不是类和对象中的对象）进行了引用计数，当新增一个shared_ptr对该对象进行管理时，就将该对象的引用计数加一；减少一个shared_ptr对该对象进行管理时，就将该对象的引用计数减一，如果该对象的引用计数为0的时候，说明没有任何指针对其管理，才调用delete释放其所占的内存。   
+    * 对shared_ptr进行初始化时不能将一个普通指针直接赋值给智能指针，因为一个是指针，一个是类，可以通过make_shared函数或者通过构造函数传入普通指针
+    * 不要把一个原生指针给多个shared_ptr，不要把this指针交给智能指针管理，这样会重复释放
+    * shared_ptr之间的资源共享是通过shared_ptr智能指针拷贝、赋值实现的，因为这样可以引起计数器的更新；而如果直接通过原生指针来初始化，就会导致m_sp和p都根本不知道对方的存在，然而却两者都管理同一块地方
+
+```C++
+int* ptr = new int;
+shared_ptr<int> p1(ptr);
+shared_ptr<int> p2(ptr); //这样不会导致更新，两者不知对方存在
+shared_ptr<int> p3(p1);//这样才会导致计数器更新
+```
+
+* **shared_ptr循环引用导致内存泄漏，引出weak_ptr**
+    * 循环引用是两个强引用（shared_ptr）互相引用，使得两者的引用计数无法为0，进而无法释放，此时将循环引用的一方变为weak_ptr即可。
+<details>
+```C++
+template <typename T>
+class Node
+{
+public:
+    Node(const T& value)
+        :_pPre(NULL)
+        , _pNext(NULL)
+        , _value(value)
+    {
+        cout << "Node()" << endl;
+    }
+    ~Node()
+    {
+        cout << "~Node()" << endl;
+        cout << "this:" << this << endl;
+    }
+
+    shared_ptr<Node<T>> _pPre;
+    shared_ptr<Node<T>> _pNext;
+    T _value;
+};
+
+void Funtest()
+{
+    shared_ptr<Node<int>> sp1(new Node<int>(1));
+    shared_ptr<Node<int>> sp2(new Node<int>(2));
+
+    cout << "sp1.use_count:" << sp1.use_count() << endl;
+    cout << "sp2.use_count:" << sp2.use_count() << endl;
+
+    sp1->_pNext = sp2;
+    sp2->_pPre = sp1;
+
+    cout << "sp1.use_count:" << sp1.use_count() << endl;
+    cout << "sp2.use_count:" << sp2.use_count() << endl;
+}
+int main()
+{
+    Funtest();
+    system("pause");
+    return 0;
+}
+```
+<details>
+上述情况造成了一个僵局，那就是析构对象时先析构sp2,可是由于sp2的空间sp1还在使用中，所以sp2.use_count减减之后为1，不释放，sp1也是相同的道理，由于sp1的空间sp2还在使用中，所以sp1.use_count减减之后为1，也不释放。sp1等着sp2先释放，sp2等着sp1先释放,二者互不相让，导致最终都没能释放，内存泄漏。
+
+    
+* **弱引用（weak_ptr）并不修改该对象的引用计数**，weak_ptr必须从一个share_ptr或另一个weak_ptr转换而来，这也说明，进行该对象的内存管理的是那个强引用的share_ptr,weak_ptr只是提供了对管理对象的一个访问手段这意味这弱引用它并不对对象的内存进行管理。在功能上类似于普通指针，然而一个比较大的区别是，弱引用能检测到所管理的对象是否已经被释放，从而避免访问非法内存
+
+```C++
+weak_ptr<Node<T>> _pPre;
+weak_ptr<Node<T>> _pNext;
+```
+expired()用于检测所管理的对象是否已经释放；lock()用于获取所管理的对象的强引用指针，不能直接访问弱引用，需要将其先通过lock转换为强引用再访问
+
+* unique_ptr
+    unique_ptr实现独占式拥有或严格拥有概念，保证同一时间内只有一个智能指针可以指向该对象
+
 
 # 面向对象
 

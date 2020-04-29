@@ -174,7 +174,9 @@ shared_ptr<int> p3(p1);//这样才会导致计数器更新
 * **shared_ptr循环引用导致内存泄漏，引出weak_ptr**
     * 循环引用是两个强引用（shared_ptr）互相引用，使得两者的引用计数无法为0，进而无法释放，此时将循环引用的一方变为weak_ptr即可。
 <details>
-```C++
+    <summary>循环引用</summary>
+    <pre><blockcode> 
+    
 template <typename T>
 class Node
 {
@@ -217,8 +219,9 @@ int main()
     system("pause");
     return 0;
 }
-```
-<details>
+    </blockcode></pre>
+</details>
+    
 上述情况造成了一个僵局，那就是析构对象时先析构sp2,可是由于sp2的空间sp1还在使用中，所以sp2.use_count减减之后为1，不释放，sp1也是相同的道理，由于sp1的空间sp2还在使用中，所以sp1.use_count减减之后为1，也不释放。sp1等着sp2先释放，sp2等着sp1先释放,二者互不相让，导致最终都没能释放，内存泄漏。
 
     

@@ -76,10 +76,13 @@ C中的strcut不能有函数，但C++中可以。C++中的struct对C中的struct
 
 ## const关键字
 > * 修饰变量，说明该变量不可以被改变；
-> * 修饰指针，分为指向常量的指针和指针常量；int *const p和const int *p
+> * 修饰指针，分为指向常量的指针和指针常量；
+```cpp
+int *const p
+const int *p 
+```
 > * 常量引用，经常用于形参类型，即避免了拷贝，又避免了函数对值的修改；
-> * 1. 修饰成员函数，说明该成员函数内不能修改成员变量，本质是const this指针。
-    2. 修饰成员函数时const要放在函数后面 
+> * 修饰成员函数，说明该成员函数内不能修改成员变量，**本质是const this指针。修饰成员函数时const要放在函数后面 。**
 ```cpp
 class A{
     int fun(int a) const{

@@ -74,7 +74,7 @@ int num1 = (int)dPi;    //c语言的旧式类型转换
 int num3 = static_cast<int> (dPi); //c++的新式的类型转换运算符   
 ```
 ### const_cast 去掉 const 属性转换
-* const_cast <目标类型>（标识符）: **目标类型只能是指针或者引用**
+* **目标类型只能是指针或者引用**
 ```cpp
 const int x = 3;
 
@@ -95,26 +95,20 @@ std::cout << x << ' ' << *x2 << std::endl;
     <pre><blockcode> 
 class CBasic{
 public:
- 
     CBasic(){};
     ~CBasic(){};
     virtual void speak() {     //要有virtual才能实现多态，才能使用dynamic cast，如果父类没有虚函数，是编译不过的
         printf("dsdfsd");
     }
-private:
- 
 };
- 
 //哺乳动物类
 class cDerived:public CBasic{
 public:
     cDerived(){};
     ~cDerived(){};
-private:
 };
  
-int main()
-{
+int main(){
      CBasic  cBasic;
      CDerived  cDerived;
      
@@ -130,13 +124,13 @@ int main()
      
      //dynamci cast failed, so throw an exception.             
      CDerived & rD1 = dynamic_cast<CDerived &> (*pB1);   
-     
-     //dynamic cast succeeded, so rD2 references to CDerived object.
-     CDerived & rD2 = dynamic_cast<CDerived &> (*pB2);    
      return 0;
 }
     </blockcode></pre>
 </details>
+### reinterpret_cast 重新解释类型转换
+* 它有着和 c 风格强制类型转换同样的功能；它可以转化任何的内置数据类型为其他的类型，同时它也可以把任何类型的指针转化为其他的类型。
+* 它的机理是对二进制进行重新的解释，不会改变原来的格式。
 
 ## const关键字
 > * 修饰变量，说明该变量不可以被改变；

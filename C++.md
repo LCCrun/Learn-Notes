@@ -63,16 +63,80 @@ C中的strcut不能有函数，但C++中可以。C++中的struct对C中的struct
 * 生长方向不同
     * 对于堆来讲，生长方向是向上的，也就是向着内存地址增加的方向；对于栈来讲，它的生长方向是向下的，是向着内存地址减小的方向增长
 
-## [面向对象和面向过程的区别](https://blog.csdn.net/jerry11112/article/details/79027834)
-面向对象就是高度实物抽象化、面向过程就是自顶向下的编程
-> * 面向过程就是分析出解决问题所需要的步骤，然后用函数把这些步骤一步一步实现，使用的时候一个一个依次调用
-> * 面向对象是把要解决的问题分解成各个对象，建立对象的目的不是为了完成一个步骤，而是为了描叙某个事物在整个解决问题的步骤中的行为
-> * 面向过程的优缺点
-    1. 优点：性能比面向对象高，因为类调用时需要实例化，开销比较大，比较消耗资源;比如单片机、嵌入式开发、Linux/Unix等一般采用面向过程开发，性能是最重要的因素。
-    2. 缺点：没有面向对象易维护、易复用、易扩展
-> * 面向对象的优缺点
-    1. 优点：易维护、易复用、易扩展，由于面向对象有封装、继承、多态性的特性，可以设计出低耦合的系统，使系统 更加灵活、更加易于维护 
-    2. 缺点：性能比面向过程低
+## 四种类型转换
+### static_cast 静态类型转换
+* static_cast <目标类型>（标识符）
+* 所谓的静态，即在编译期内即可决定其类型的转换，用的也是最多的一种。
+```cpp
+double dPi = 3.1415926;
+int num1 = (int)dPi;    //c语言的旧式类型转换  
+// 在编译的时 进⾏行基本类型的转换 能替代c⻛风格的类型转换 可以进⾏行⼀一部分检查     
+int num3 = static_cast<int> (dPi); //c++的新式的类型转换运算符   
+```
+### const_cast 去掉 const 属性转换
+* const_cast <目标类型>（标识符）: **目标类型只能是指针或者引用**
+```cpp
+const int x = 3;
+
+int x0 = const_cast<int>(x); //错误，const_cast 目标类型只能是引用或者指针
+x0 = 100;
+
+int& x1 = const_cast<int&>(x);
+x1 = 200;
+std::cout << x << ' ' << x1 << std::endl;
+
+int* x2 = const_cast<int*>(&x);
+*x2 = 300;
+std::cout << x << ' ' << *x2 << std::endl;
+```
+### dynamic_cast 子类与父类之间的多态类型转换
+<details>
+    <summary>dynamic_cast用法</summary>
+    <pre><blockcode> 
+class CBasic{
+public:
+ 
+    CBasic(){};
+    ~CBasic(){};
+    virtual void speak() {     //要有virtual才能实现多态，才能使用dynamic cast，如果父类没有虚函数，是编译不过的
+        printf("dsdfsd");
+    }
+private:
+ 
+};
+ 
+//哺乳动物类
+class cDerived:public CBasic{
+public:
+    cDerived(){};
+    ~cDerived(){};
+private:
+};
+ 
+int main()
+{
+     CBasic  cBasic;
+     CDerived  cDerived;
+     
+     CBasic * pB1 = new CBasic;
+     CBasic * pB2 = new CDerived;
+     
+     //dynamic cast failed, so pD1 is null.  pB1指向对象和括号里的Derived *不一样，转换失败
+     CDerived * pD1 = dynamic_cast<CDerived * > (pB1);    
+     
+     //dynamic cast succeeded, so pD2 points to  CDerived object       
+     //dynamic cast 用于将指向子类的父类指针或引用，转换为子类指针或引用 ，pB2指向对象和括号里的Derived *一样，转换成功    
+     CDerived * pD2 = dynamic_cast<CDerived * > (pB2);    
+     
+     //dynamci cast failed, so throw an exception.             
+     CDerived & rD1 = dynamic_cast<CDerived &> (*pB1);   
+     
+     //dynamic cast succeeded, so rD2 references to CDerived object.
+     CDerived & rD2 = dynamic_cast<CDerived &> (*pB2);    
+     return 0;
+}
+    </blockcode></pre>
+</details>
 
 ## const关键字
 > * 修饰变量，说明该变量不可以被改变；

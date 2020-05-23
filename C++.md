@@ -4,6 +4,7 @@
 > * [引用和指针的区别](#引用和指针的区别)
 > * [C++中class和struct的区别](#C中class和struct的区别)
 > * [new/delete和malloc/free区别](#new/delete和malloc/free区别)
+> * [malloc/free的工作机制](#malloc/free的工作机制)
 > * [栈和堆的区别](#栈和堆的区别)
 > * [类型转换](#类型转换)
 > * [const关键字](#const关键字)
@@ -52,6 +53,10 @@ C中的strcut不能有函数，但C++中可以。C++中的struct对C中的struct
 * **是否调用构造函数/析构函数.**   new会先调用operator_ new函数，申请足够的内存（通常底层使用malloc实现）。然后调用类型的构造函数，初始化成员变量，最后返回自定义类型指针。delete先调用析构函数，然后调用operator_ delete函数释放内存（通常底层使用free实现）。malloc/free是库函数，只能动态的申请和释放内存，无法强制要求其做自定义类型对象构造和析构工作。 
 * **能否重载.** opeartor_new/operator_delete允许重载,malloc/free不允许重载
 
+## [malloc/free的工作机制](https://blog.csdn.net/H08042/article/details/105390789/)
+* malloc函数的实质体现在，它有一个将可用的内存块连接为一个长长的列表的所谓空闲链表。
+* 调用malloc函数时，它沿连接表寻找一个大到足以满足用户请求所需要的内存块。然后，将该内存块一分为二（一块的大小与用户请求的大小相等，另一块的大小就是剩下的字节）。接下来，将分配给用户的那块内存传给用户，并将剩下的那块（如果有的话）返回到连接表上。
+* 调用free函数时，它将用户释放的内存块连接到空闲链上。到最后，空闲链会被切成很多的小内存片段，如果这时用户申请一个大的内存片段，那么空闲链上可能没有可以满足用户要求的片段了。于是，malloc函数请求延时，并开始在空闲链上翻箱倒柜地检查各内存片段，对它们进行整理，将相邻的小空闲块合并成较大的内存块。
 
 ## [栈和堆的区别](https://blog.csdn.net/caogenwangbaoqiang/article/details/79788368)
 * 管理方式不同

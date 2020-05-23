@@ -44,7 +44,8 @@ C中的strcut不能有函数，但C++中可以。C++中的struct对C中的struct
     class B : public A就是为了指明是public继承，而不是用默认的private继承，若class B : A则是private继承
 * **定义模板参数.** class这个关键字还用于定义模板参数，就像typename。但关键字struct不用于定义模板参数。
 
-## new/delete和malloc/free区别
+## new/delete和malloc/free区别  
+
 * **属性不同.** new/delete是C++关键字，需要编译器支持。malloc/free是库函数，需要头文件支持c
 * **申请的内存所在位置.** new操作符从自由存储区（free store）上为对象动态分配内存空间，而malloc函数从堆上动态分配内存.
 * **返回类型安全性.** new操作符内存分配成功时，返回的是对象类型的指针，类型严格与对象匹配，无须进行类型转换，故new是符合类型安全性的操作符。而malloc内存分配成功则是返回void*类型，需要通过强制类型转换将空类型指针转换成我们需要的类型。
@@ -53,7 +54,8 @@ C中的strcut不能有函数，但C++中可以。C++中的struct对C中的struct
 * **能否重载.** opeartor_new/operator_delete允许重载,malloc/free不允许重载
 
 
-## [malloc/free的工作机制](https://blog.csdn.net/H08042/article/details/105390789/)
+## [malloc/free的工作机制](https://blog.csdn.net/H08042/article/details/105390789/)  
+
 * malloc函数的实质体现在，它有一个将可用的内存块连接为一个长长的列表的所谓空闲链表。
 * 调用malloc函数时，它沿连接表寻找一个大到足以满足用户请求所需要的内存块。然后，将该内存块一分为二（一块的大小与用户请求的大小相等，另一块的大小就是剩下的字节）。接下来，将分配给用户的那块内存传给用户，并将剩下的那块（如果有的话）返回到连接表上。
 * 调用free函数时，它将用户释放的内存块连接到空闲链上。到最后，空闲链会被切成很多的小内存片段，如果这时用户申请一个大的内存片段，那么空闲链上可能没有可以满足用户要求的片段了。于是，malloc函数请求延时，并开始在空闲链上翻箱倒柜地检查各内存片段，对它们进行整理，将相邻的小空闲块合并成较大的内存块。
